@@ -1,66 +1,79 @@
 <script setup>
+  const satser = {
+    fradragMax: 48000,
+    amb: 0.08,
+    beskæftigelsesfradrag: 0.1065,
+    beskæftigelsesfradragMax: 45600,
+    jobfradrag: 0.045,
+    jobfradragMax: 2700,
+    kommuneskat: 0.25,
+    bundskat: 0.1206,
+    topskat: 0.15,
+    topskatSats: 568900,
+  };
+
   import { ref } from 'vue'
 
-  const løn = ref(1000000 / 12)
+  const input = ref(0) // input
+  const årslønVal = ref(0)
+  const ambVal = ref(0)
+  const fradrag = ref(0)
 
-  const årslønVal = ref(løn.value * 12)
-  const ambVal = ref(årslønVal.value * amb)
+  const beskæftigelsesfradragVal = ref(0)
+  const jobfradragVal = ref(0)
 
-  const lønMinusAmb = årslønVal.value - ambVal.value
+  const kommuneskatVal = ref(0)
+  const bundskatVal = ref(0)
+  const topskatVal = ref(0)
 
-  const beskæftigelsesfradragVal = ref(
-    Math.min(lønMinusAmb * beskæftigelsesfradrag, beskæftigelsesfradragMax)
-  )
-  const jobfradragVal = ref(
-    Math.min(lønMinusAmb * jobfradrag, jobfradragMax)
-  )
+  const samletSkatVal = ref(0)
+  const efterSkatVal = ref(0)
+  const efterSkatMdVal = ref(0)
 
-  const efterFradrag = lønMinusAmb - beskæftigelsesfradragVal.value - jobfradragVal.value - fradrag
-  console.log(efterFradrag)
-  const efterAmbOgFradrag = lønMinusAmb - fradrag
+  // Beregner
+  function beregn(e, lønMd = e.target.value) {
+    if (lønMd < 1) {
+      return
+    }
 
-  const kommuneskatVal = ref(efterFradrag * kommuneskat)
-  const bundskatVal = ref(efterAmbOgFradrag * bundskat)
+    input.value = lønMd
 
-  let topskatGundlag = årslønVal.value - topskatSats
-  if (topskatGundlag < 0) {
-    topskatGundlag = 0
-  }
-  const topskatVal = ref(topskatGundlag * topskat)
+    årslønVal.value = lønMd * 12
+    ambVal.value = årslønVal.value * satser.amb
 
-  const samletSkatVal = ref(
-    kommuneskatVal.value + bundskatVal.value + topskatVal.value
-  )
-  const samletSkatAmb = samletSkatVal.value + ambVal.value
-  //const kirkeskatVal = ref(0)
+    const lønMinusAmb = årslønVal.value - ambVal.value
+    fradrag.value = Math.min(satser.fradragMax, lønMd)
 
-  const efterSkatVal = ref(
-    Math.round(
-      årslønVal.value -
+    beskæftigelsesfradragVal.value = Math.min(lønMinusAmb * satser.beskæftigelsesfradrag,
+    satser.beskæftigelsesfradragMax)
+
+    jobfradragVal.value = Math.min(lønMinusAmb * satser.jobfradrag, satser.jobfradragMax)
+
+    const efterFradrag = lønMinusAmb -
+      beskæftigelsesfradragVal.value -
+      jobfradragVal.value -
+      fradrag.value
+    const efterAmbOgFradrag = lønMinusAmb - fradrag.value
+
+    kommuneskatVal.value = efterFradrag * satser.kommuneskat
+    bundskatVal.value = efterAmbOgFradrag * satser.bundskat
+
+    let topskatGundlag = årslønVal.value - satser.topskatSats
+    if (topskatGundlag < 0) {
+      topskatGundlag = 0
+    }
+    topskatVal.value = topskatGundlag * satser.topskat
+
+    samletSkatVal.value = kommuneskatVal.value + bundskatVal.value + topskatVal.value
+    const samletSkatAmb = samletSkatVal.value + ambVal.value
+
+    efterSkatVal.value = årslønVal.value -
       samletSkatAmb -
       beskæftigelsesfradragVal.value -
       jobfradragVal.value +
-      fradrag
-    )
-  )
+      fradrag.value
 
-  // Skattesatser
-  const fradrag = 48000
-  const amb = 0.08
-  const beskæftigelsesfradrag = 0.1065
-  const beskæftigelsesfradragMax = 45600
-  const jobfradrag = 0.045
-  const jobfradragMax = 2700
-  const kommuneskat = 0.25
-  const bundskat = 0.1206
-  const topskat = 0.15
-  const topskatSats = 568900
-  //const kirkeskat = 0.074
-
-  // Beregner
-  function beregn(e, løn = e.target.value) {
-    årslønVal.value = løn * 12
-    console.log('beregn')
+    efterSkatMdVal.value = efterSkatVal.value / 12
   }
 </script>
 
@@ -71,30 +84,30 @@
       <div class="form">
         <div class="form-group">
           <label>Månedsløn (før skat)</label><br />
-          <input type="number" :value="løn" @change='beregn' />
+          <input type="string" :value="input" @input='beregn' />
         </div>
 
         <h2>Udbetalt løn</h2>
         <ul>
-          <li>Årsløn: {{ årslønVal }}</li>
-          <li>Skattefradrag: {{ fradrag }}</li>
-          <li>Arbejdsmarkedsbidrag: {{ ambVal }}</li>
-          <li>Beskæftigelsesfradrag: {{ beskæftigelsesfradragVal }}</li>
-          <li>Jobfradrag: {{ jobfradragVal }}</li>
-          <li>Kommuneskat: {{ kommuneskatVal }}</li>
-          <li>Bundskat: {{ bundskatVal }}</li>
-          <li>Topskat: {{ topskatVal }}</li>
-          <li>Samlet skat: {{ samletSkatVal }}</li>
-          <li>Til udbetaling: <b>{{ efterSkatVal }}</b></li>
+          <li>Årsløn: {{ $filters.formatNumber(årslønVal) }}</li>
+          <li>Skattefradrag: {{ $filters.formatNumber(fradrag) }}</li>
+          <li>Arbejdsmarkedsbidrag: {{ $filters.formatNumber(ambVal) }}</li>
+          <li>Beskæftigelsesfradrag: {{ $filters.formatNumber(beskæftigelsesfradragVal) }}</li>
+          <li>Jobfradrag: {{ $filters.formatNumber(jobfradragVal) }}</li>
+          <li>Kommuneskat: {{ $filters.formatNumber(kommuneskatVal) }}</li>
+          <li>Bundskat: {{ $filters.formatNumber(bundskatVal) }}</li>
+          <li>Topskat: {{ $filters.formatNumber(topskatVal) }}</li>
+          <li>Samlet skat: {{ $filters.formatNumber(samletSkatVal) }}</li>
+          <li>Til udbetaling: <b>{{ $filters.formatNumber(efterSkatVal) }}</b></li>
+          <li>Til udbetaling pr måned: <b>{{ $filters.formatNumber(efterSkatMdVal) }}</b></li>
         </ul>
 
         <h2>Skattesatser</h2>
         <ul>
-          <li>Arbejdsmarkedsbidrag: {{ amb * 100 }}%</li>
-          <li>Bundskat: {{ bundskat * 100 }}%</li>
-          <li>Topskat: {{ topskat * 100 }}%</li>
-          <li>Kommuneskat: {{ kommuneskat * 100 }}%</li>
-          <li>Kirkeskat: {{ kirkeskat * 100 }}%</li>
+          <li>Kommuneskat: {{ satser.kommuneskat * 100 }}%</li>
+          <li>Bundskat: {{ satser.bundskat * 100 }}%</li>
+          <li>Topskat: {{ satser.topskat * 100 }}% (over {{ $filters.formatNumber(satser.topskatSats) }})</li>
+          <li>Arbejdsmarkedsbidrag: {{ satser.amb * 100 }}%</li>
         </ul>
       </div>
     </div>
