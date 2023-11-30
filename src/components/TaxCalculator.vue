@@ -102,7 +102,7 @@
       <ValueRow label="Årsløn før skat" :value="årslønVal" />
     </div>
 
-    <div class="flex gap-4 mb-4">
+    <div class="flex gap-4 mb-4 flex-col md:flex-row">
       <div class="card basis-1/2">
         <h2 class="text-xl mb-2">Skatter</h2>
         <ValueRow label="Kommuneskat" :value="kommuneskatVal" />
