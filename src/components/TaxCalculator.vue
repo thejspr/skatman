@@ -1,3 +1,5 @@
+import ValueRow from './ValueRow.vue'
+
 <script setup>
   const satser = {
     fradragMax: 48000,
@@ -13,8 +15,8 @@
   };
 
   import { ref } from 'vue'
-
-  const input = ref(0) // input
+import ValueRow from './ValueRow.vue';
+  const input = ref(window.location.search.replace('?loen=', '')) // input
   const årslønVal = ref(0)
   const ambVal = ref(0)
   const fradrag = ref(0)
@@ -27,14 +29,13 @@
   const topskatVal = ref(0)
 
   const samletSkatVal = ref(0)
+  const samletSkatProcentVal = ref(0)
   const efterSkatVal = ref(0)
   const efterSkatMdVal = ref(0)
 
   // Beregner
   function beregn(e, lønMd = e.target.value) {
-    if (lønMd < 1) {
-      return
-    }
+    if (lønMd < 1) { return }
 
     input.value = lønMd
 
@@ -65,6 +66,7 @@
     topskatVal.value = topskatGundlag * satser.topskat
 
     samletSkatVal.value = kommuneskatVal.value + bundskatVal.value + topskatVal.value
+    samletSkatProcentVal.value = samletSkatVal.value / årslønVal.value * 100
     const samletSkatAmb = samletSkatVal.value + ambVal.value
 
     efterSkatVal.value = årslønVal.value -
@@ -74,42 +76,51 @@
       fradrag.value
 
     efterSkatMdVal.value = efterSkatVal.value / 12
+
+    // store state in url
+    window.history.replaceState({}, '', `?loen=${lønMd}`)
   }
 </script>
 
 <template>
-  <div class="calculator">
-    <h1>Beregn udbetalt løn</h1>
-    <div class="wrapper">
-      <div class="form">
-        <div class="form-group">
-          <label>Månedsløn (før skat)</label><br />
-          <input type="string" :value="input" @input='beregn' />
-        </div>
+  <div class="p-4">
+    <div class="card text-center mb-4">
+      <span class="mr-2">Indtast månedsløn</span>
+      <input class="border rounded-md p-2 text-right text-xl" input="number" :value="input" @input='beregn' />
+      <span class="ml-1">kr</span>
+    </div>
 
-        <h2>Udbetalt løn</h2>
-        <ul>
-          <li>Årsløn: {{ $filters.formatNumber(årslønVal) }}</li>
-          <li>Skattefradrag: {{ $filters.formatNumber(fradrag) }}</li>
-          <li>Arbejdsmarkedsbidrag: {{ $filters.formatNumber(ambVal) }}</li>
-          <li>Beskæftigelsesfradrag: {{ $filters.formatNumber(beskæftigelsesfradragVal) }}</li>
-          <li>Jobfradrag: {{ $filters.formatNumber(jobfradragVal) }}</li>
-          <li>Kommuneskat: {{ $filters.formatNumber(kommuneskatVal) }}</li>
-          <li>Bundskat: {{ $filters.formatNumber(bundskatVal) }}</li>
-          <li>Topskat: {{ $filters.formatNumber(topskatVal) }}</li>
-          <li>Samlet skat: {{ $filters.formatNumber(samletSkatVal) }}</li>
-          <li>Til udbetaling: <b>{{ $filters.formatNumber(efterSkatVal) }}</b></li>
-          <li>Til udbetaling pr måned: <b>{{ $filters.formatNumber(efterSkatMdVal) }}</b></li>
-        </ul>
+    <div class="card mb-4">
+      <h2 class="text-xl mb-2">Udbetalt løn</h2>
+      Til udbetaling pr måned: {{ $filters.formatNumber(efterSkatMdVal) }}<br />
+      Til udbetaling: {{ $filters.formatNumber(efterSkatVal) }}
+      Årsløn: {{ $filters.formatNumber(årslønVal) }}
+    </div>
 
-        <h2>Skattesatser</h2>
-        <ul>
-          <li>Kommuneskat: {{ satser.kommuneskat * 100 }}%</li>
-          <li>Bundskat: {{ satser.bundskat * 100 }}%</li>
-          <li>Topskat: {{ satser.topskat * 100 }}% (over {{ $filters.formatNumber(satser.topskatSats) }})</li>
-          <li>Arbejdsmarkedsbidrag: {{ satser.amb * 100 }}%</li>
-        </ul>
+    <div class="flex gap-4 mb-4">
+      <div class="card basis-1/2">
+        <h2 class="text-xl mb-2">Skatter</h2>
+        <ValueRow label="Kommuneskat" :value="kommuneskatVal" />
+        <ValueRow label="Bundskat" :value="bundskatVal" />
+        <ValueRow label="Topskat" :value="topskatVal" />
+        <ValueRow label="Samlet" :value="samletSkatVal" />
+        <ValueRow label="Skatteprocent" :value="samletSkatProcentVal" suffix="%" />
       </div>
+      <div class="card  basis-1/2">
+        <h2 class="text-xl mb-2">Fradrag & bidrag</h2>
+        <ValueRow label="Arbejdsmarkedsbidrag" :value="ambVal" />
+        <ValueRow label="Beskæftigelsesfradrag" :value="beskæftigelsesfradragVal" />
+        <ValueRow label="Jobfradrag" :value="jobfradragVal" />
+        <ValueRow label="Skattefradrag" :value="fradrag" />
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 class="text-xl mb-2">Satser</h2>
+      <ValueRow label="Kommuneskat" :value="satser.kommuneskat * 100" suffix="%" />
+      <ValueRow label="Bundskat" :value="satser.bundskat * 100" suffix="%" />
+      <ValueRow label="Topskat" :value="satser.topskat * 100" suffix="%" />
+      <ValueRow label="Arbejdsmarkedsbidrag" :value="satser.amb * 100" suffix="%" />
     </div>
   </div>
 </template>

@@ -7,11 +7,7 @@ const app = createApp(App)
 
 app.config.globalProperties.$filters = {
   formatNumber(number) {
-    // return Intl.NumberFormat().format(number);
-    if (!number) {
-      return null
-    }
-
+    if (!number) { return null }
     return number.toLocaleString('da-DK', { maximumFractionDigits: 2 })
   }
 }
