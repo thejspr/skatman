@@ -1,6 +1,7 @@
-import ValueRow from './ValueRow.vue'
-
 <script setup>
+  import { ref } from 'vue'
+  import ValueRow from './ValueRow.vue';
+
   const satser = {
     fradragMax: 48000,
     amb: 0.08,
@@ -14,9 +15,7 @@ import ValueRow from './ValueRow.vue'
     topskatSats: 568900,
   };
 
-  import { ref } from 'vue'
-import ValueRow from './ValueRow.vue';
-  const input = ref(window.location.search.replace('?loen=', '')) // input
+  const input = ref(0) // input
   const årslønVal = ref(0)
   const ambVal = ref(0)
   const fradrag = ref(0)
@@ -80,6 +79,13 @@ import ValueRow from './ValueRow.vue';
     // store state in url
     window.history.replaceState({}, '', `?loen=${lønMd}`)
   }
+
+  // Load state from url
+  const urlParams = new URLSearchParams(window.location.search)
+  const lønMd = urlParams.get('loen')
+  if (lønMd) {
+    beregn({ target: { value: lønMd } }, lønMd)
+  }
 </script>
 
 <template>
@@ -91,10 +97,9 @@ import ValueRow from './ValueRow.vue';
     </div>
 
     <div class="card mb-4">
-      <h2 class="text-xl mb-2">Udbetalt løn</h2>
-      Til udbetaling pr måned: {{ $filters.formatNumber(efterSkatMdVal) }}<br />
-      Til udbetaling: {{ $filters.formatNumber(efterSkatVal) }}
-      Årsløn: {{ $filters.formatNumber(årslønVal) }}
+      <h2 class="text-xl mb-2">Løn</h2>
+      <ValueRow label="Udbetalt per måned" :value="efterSkatMdVal" />
+      <ValueRow label="Årsløn før skat" :value="årslønVal" />
     </div>
 
     <div class="flex gap-4 mb-4">
