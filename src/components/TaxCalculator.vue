@@ -98,7 +98,7 @@
 
     <div class="card mb-4">
       <h2 class="text-xl mb-2">Løn</h2>
-      <ValueRow label="Udbetalt per måned" :value="efterSkatMdVal" />
+      <ValueRow label="Udbetalt per måned" :value="efterSkatMdVal" class="font-bold" />
       <ValueRow label="Årsløn før skat" :value="årslønVal" />
     </div>
 

@@ -4,7 +4,7 @@ import TaxCalculator from './components/TaxCalculator.vue'
 
 <template>
   <main class="">
-    <div class="container mx-auto">
+    <div class="container mx-auto max-w-2xl">
       <TaxCalculator />
     </div>
   </main>
