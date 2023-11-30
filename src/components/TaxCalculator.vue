@@ -3,16 +3,16 @@
   import ValueRow from './ValueRow.vue';
 
   const satser = {
-    fradragMax: 48000,
+    fradragMax: 49700,
     amb: 0.08,
     beskæftigelsesfradrag: 0.1065,
-    beskæftigelsesfradragMax: 45600,
+    beskæftigelsesfradragMax: 45100,
     jobfradrag: 0.045,
-    jobfradragMax: 2700,
+    jobfradragMax: 2800,
     kommuneskat: 0.25,
     bundskat: 0.1206,
     topskat: 0.15,
-    topskatSats: 568900,
+    topskatSats: 588900,
   };
 
   const input = ref(0) // input
