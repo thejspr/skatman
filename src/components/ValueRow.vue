@@ -11,8 +11,8 @@ defineProps({
 </script>
 
 <template>
-    <div class="flex justify-between">
-        <div class="">{{ label }}</div>
+    <div class="flex justify-between items-center">
+        <div :class="class">{{ label }}</div>
         <div :class="class">{{ $filters.formatNumber(value) }} {{ suffix }}</div>
     </div>
 </template>

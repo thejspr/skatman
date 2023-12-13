@@ -31,7 +31,6 @@
   const samletSkatVal = ref(0)
   const samletSkatProcentVal = ref(0)
   const efterSkatVal = ref(0)
-  const efterSkatMdVal = ref(0)
 
   // Beregner
   function beregn(e, lønMd = e.target.value) {
@@ -65,17 +64,11 @@
     }
     topskatVal.value = topskatGundlag * satser.topskat
 
-    samletSkatVal.value = kommuneskatVal.value + bundskatVal.value + topskatVal.value
-    samletSkatProcentVal.value = samletSkatVal.value / årslønVal.value * 100
+    samletSkatVal.value = kommuneskatVal.value + bundskatVal.value + topskatVal.value + ambVal.value
+    samletSkatProcentVal.value = Math.round(samletSkatVal.value / årslønVal.value * 100)
     const samletSkatAmb = samletSkatVal.value + ambVal.value
 
-    efterSkatVal.value = årslønVal.value -
-      samletSkatAmb -
-      beskæftigelsesfradragVal.value -
-      jobfradragVal.value +
-      fradrag.value
-
-    efterSkatMdVal.value = efterSkatVal.value / 12
+    efterSkatVal.value = årslønVal.value - samletSkatVal.value
 
     // store state in url
     window.history.replaceState({}, '', `?loen=${lønMd}`)
@@ -97,33 +90,32 @@
       <span class="ml-1">kr</span>
     </div>
 
-    <div class="card mb-4">
-      <h2 class="text-xl mb-2">Løn</h2>
-      <ValueRow label="Udbetalt per måned" :value="efterSkatMdVal" class="font-bold" />
-      <ValueRow label="Årsløn før skat" :value="årslønVal" />
+    <div class="card mb-4 text-2xl">
+      <ValueRow label="Udbetalt per måned" :value="efterSkatVal / 12" />
     </div>
 
     <div class="flex gap-4 mb-4 flex-col md:flex-row">
       <div class="card basis-1/2">
         <h2 class="text-xl mb-2">Skatter</h2>
-        <ValueRow label="Kommuneskat" :value="kommuneskatVal" />
-        <ValueRow label="Bundskat" :value="bundskatVal" />
-        <ValueRow label="Topskat" :value="topskatVal" />
-        <ValueRow label="Samlet" :value="samletSkatVal" />
+        <ValueRow label="Kommuneskat" :value="kommuneskatVal / 12" />
+        <ValueRow label="Bundskat" :value="bundskatVal / 12" />
+        <ValueRow label="Topskat" :value="topskatVal / 12" />
+        <ValueRow label="Arbejdsmarkedsbidrag" :value="ambVal / 12" />
+        <ValueRow class='mt-3 underline' label="Samlet" :value="samletSkatVal / 12" />
         <ValueRow label="Skatteprocent" :value="samletSkatProcentVal" suffix="%" />
       </div>
       <div class="card  basis-1/2">
-        <h2 class="text-xl mb-2">Fradrag & bidrag</h2>
-        <ValueRow label="Arbejdsmarkedsbidrag" :value="ambVal" />
-        <ValueRow label="Beskæftigelsesfradrag" :value="beskæftigelsesfradragVal" />
-        <ValueRow label="Jobfradrag" :value="jobfradragVal" />
-        <ValueRow label="Skattefradrag" :value="fradrag" />
+        <h2 class="text-xl mb-2">Fradrag</h2>
+        <ValueRow label="Skattefradrag" :value="fradrag / 12" />
+        <ValueRow label="Beskæftigelsesfradrag" :value="beskæftigelsesfradragVal / 12" />
+        <ValueRow label="Jobfradrag" :value="jobfradragVal / 12" />
+        <ValueRow class='mt-3 underline' label="Samlet" :value="(fradrag + beskæftigelsesfradragVal + jobfradragVal) / 12" />
       </div>
     </div>
 
     <div class="card">
       <h2 class="text-xl mb-2">Satser</h2>
-      <ValueRow label="Kommuneskat" :value="satser.kommuneskat * 100" suffix="%" />
+      <ValueRow label="Kommuneskat (Aarhus)" :value="satser.kommuneskat * 100" suffix="%" />
       <ValueRow label="Bundskat" :value="satser.bundskat * 100" suffix="%" />
       <ValueRow label="Topskat" :value="satser.topskat * 100" suffix="%" />
       <ValueRow label="Arbejdsmarkedsbidrag" :value="satser.amb * 100" suffix="%" />
