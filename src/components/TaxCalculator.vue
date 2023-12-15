@@ -33,7 +33,8 @@
   const efterSkatVal = ref(0)
 
   // Beregner
-  function beregn(e, lønMd = e.target.value) {
+  function beregn(e, i= e.target.value) {
+    let lønMd = i.replaceAll(/\D/g, "")
     if (lønMd < 1) { return }
 
     input.value = lønMd
@@ -86,7 +87,8 @@
   <div class="p-4">
     <div class="card text-center mb-4">
       <span class="mr-2">Indtast månedsløn</span>
-      <input class="border rounded-md p-2 text-right text-xl" input="number" :value="input" @input='beregn' />
+      <input class="border rounded-md p-2 text-right text-xl" input="text"
+        :value="$filters.formatNumber(input)" @input='beregn' />
       <span class="ml-1">kr</span>
     </div>
 
