@@ -87,7 +87,7 @@
     <div class="card text-center mb-4">
       <span class="mr-2">Indtast månedsløn</span>
       <input class="border rounded-md p-2 text-right text-xl" input="text"
-        :value="$filters.formatNumber(input)" @input='beregn' />
+        :value="$filters.formatNumber(input, false)" @input='beregn' />
       <span class="ml-1">kr</span>
     </div>
 
