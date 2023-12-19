@@ -67,7 +67,6 @@
 
     samletSkatVal.value = kommuneskatVal.value + bundskatVal.value + topskatVal.value + ambVal.value
     samletSkatProcentVal.value = Math.round(samletSkatVal.value / årslønVal.value * 100)
-    const samletSkatAmb = samletSkatVal.value + ambVal.value
 
     efterSkatVal.value = årslønVal.value - samletSkatVal.value
 
