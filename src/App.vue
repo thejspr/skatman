@@ -13,7 +13,7 @@ import TaxCalculator from './components/TaxCalculator.vue'
         &middot;
         {{ new Date().getFullYear() }}
         &middot;
-        <a href="mailto:j@webyard.io" target="_blank" class="text-blue-500">kontakt</a>
+        <a href="mailto:j@webyard.dk" target="_blank" class="text-blue-500">kontakt</a>
         &middot;
       </div>
     </div>
