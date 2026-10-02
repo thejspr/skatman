@@ -1,116 +1,102 @@
 <script setup>
-  import { ref } from 'vue'
-  import ValueRow from './ValueRow.vue';
+import { computed, ref } from 'vue'
+import ValueRow from './ValueRow.vue'
 
-  const satser = {
-    fradragMax: 49700,
-    amb: 0.08,
-    beskæftigelsesfradrag: 0.1065,
-    beskæftigelsesfradragMax: 45100,
-    jobfradrag: 0.045,
-    jobfradragMax: 2800,
-    kommuneskat: 0.2452,
-    kirkeskat: 0.0074,
-    bundskat: 0.1206,
-    topskat: 0.15,
-    topskatSats: 588900,
-  };
+const satser = {
+  fradragMax: 49700,
+  amb: 0.08,
+  beskæftigelsesfradrag: 0.1065,
+  beskæftigelsesfradragMax: 45100,
+  jobfradrag: 0.045,
+  jobfradragMax: 2800,
+  kommuneskat: 0.2452,
+  kirkeskat: 0.0074,
+  bundskat: 0.1206,
+  topskat: 0.15,
+  topskatSats: 588900
+}
 
-  const input = ref(0) // input
-  const årslønVal = ref(0)
-  const ambVal = ref(0)
-  const fradrag = ref(0)
+const parse = (value) => Number(String(value ?? '').replace(/\D/g, ''))
 
-  const beskæftigelsesfradragVal = ref(0)
-  const jobfradragVal = ref(0)
+// Månedsløn, hentet fra url ved indlæsning
+const lønMd = ref(parse(new URLSearchParams(window.location.search).get('loen')))
 
-  const kommuneskatVal = ref(0)
-  const bundskatVal = ref(0)
-  const topskatVal = ref(0)
+function onInput(e) {
+  const value = parse(e.target.value)
+  if (value < 1) return
 
-  const samletSkatVal = ref(0)
-  const samletSkatProcentVal = ref(0)
-  const efterSkatVal = ref(0)
+  lønMd.value = value
+  window.history.replaceState({}, '', `?loen=${value}`)
+}
 
-  // Beregner
-  function beregn(e, i= e.target.value) {
-    let lønMd = i.replaceAll(/\D/g, "")
-    if (lønMd < 1) { return }
+// Alle beløb er per måned
+const r = computed(() => {
+  const årsløn = lønMd.value * 12
+  const amb = årsløn * satser.amb
+  const lønMinusAmb = årsløn - amb
+  const fradrag = Math.min(satser.fradragMax, lønMd.value)
+  const beskæftigelsesfradrag = Math.min(
+    lønMinusAmb * satser.beskæftigelsesfradrag,
+    satser.beskæftigelsesfradragMax
+  )
+  const jobfradrag = Math.min(lønMinusAmb * satser.jobfradrag, satser.jobfradragMax)
 
-    input.value = lønMd
+  const kommuneskat =
+    (lønMinusAmb - beskæftigelsesfradrag - jobfradrag - fradrag) * satser.kommuneskat
+  const bundskat = (lønMinusAmb - fradrag) * satser.bundskat
+  const topskat = Math.max(årsløn - satser.topskatSats, 0) * satser.topskat
+  const samletSkat = kommuneskat + bundskat + topskat + amb
 
-    årslønVal.value = lønMd * 12
-    ambVal.value = årslønVal.value * satser.amb
-
-    const lønMinusAmb = årslønVal.value - ambVal.value
-    fradrag.value = Math.min(satser.fradragMax, lønMd)
-
-    beskæftigelsesfradragVal.value = Math.min(lønMinusAmb * satser.beskæftigelsesfradrag,
-    satser.beskæftigelsesfradragMax)
-
-    jobfradragVal.value = Math.min(lønMinusAmb * satser.jobfradrag, satser.jobfradragMax)
-
-    const efterFradrag = lønMinusAmb -
-      beskæftigelsesfradragVal.value -
-      jobfradragVal.value -
-      fradrag.value
-    const efterAmbOgFradrag = lønMinusAmb - fradrag.value
-
-    kommuneskatVal.value = efterFradrag * satser.kommuneskat
-    bundskatVal.value = efterAmbOgFradrag * satser.bundskat
-
-    let topskatGundlag = årslønVal.value - satser.topskatSats
-    if (topskatGundlag < 0) {
-      topskatGundlag = 0
-    }
-    topskatVal.value = topskatGundlag * satser.topskat
-
-    samletSkatVal.value = kommuneskatVal.value + bundskatVal.value + topskatVal.value + ambVal.value
-    samletSkatProcentVal.value = Math.round(samletSkatVal.value / årslønVal.value * 100)
-
-    efterSkatVal.value = årslønVal.value - samletSkatVal.value
-
-    // store state in url
-    window.history.replaceState({}, '', `?loen=${lønMd}`)
+  return {
+    kommuneskat: kommuneskat / 12,
+    bundskat: bundskat / 12,
+    topskat: topskat / 12,
+    amb: amb / 12,
+    samletSkat: samletSkat / 12,
+    skatteprocent: årsløn ? Math.round((samletSkat / årsløn) * 100) : 0,
+    efterSkat: (årsløn - samletSkat) / 12,
+    fradrag: fradrag / 12,
+    beskæftigelsesfradrag: beskæftigelsesfradrag / 12,
+    jobfradrag: jobfradrag / 12,
+    samletFradrag: (fradrag + beskæftigelsesfradrag + jobfradrag) / 12
   }
-
-  // Load state from url
-  const urlParams = new URLSearchParams(window.location.search)
-  const lønMd = urlParams.get('loen')
-  if (lønMd) {
-    beregn({ target: { value: lønMd } }, lønMd)
-  }
+})
 </script>
 
 <template>
   <div class="p-4">
     <div class="card text-center mb-4">
       <span class="mr-2">Indtast månedsløn</span>
-      <input class="border rounded-md p-2 text-right text-xl" input="text"
-        :value="$filters.formatNumber(input, false)" @input='beregn' />
+      <input
+        class="border border-gray-200 rounded-md p-2 text-right text-xl"
+        type="text"
+        inputmode="numeric"
+        :value="$filters.formatNumber(lønMd)"
+        @input="onInput"
+      />
       <span class="ml-1">kr</span>
     </div>
 
     <div class="card mb-4 text-2xl">
-      <ValueRow label="Udbetalt per måned" :value="efterSkatVal / 12" />
+      <ValueRow label="Udbetalt per måned" :value="r.efterSkat" />
     </div>
 
     <div class="flex gap-4 mb-4 flex-col md:flex-row">
       <div class="card basis-1/2">
         <h2 class="text-xl mb-2">Skatter</h2>
-        <ValueRow label="Kommuneskat" :value="kommuneskatVal / 12" />
-        <ValueRow label="Bundskat" :value="bundskatVal / 12" />
-        <ValueRow label="Topskat" :value="topskatVal / 12" />
-        <ValueRow label="Arbejdsmarkedsbidrag" :value="ambVal / 12" />
-        <ValueRow class='mt-3 underline' label="Samlet" :value="samletSkatVal / 12" />
-        <ValueRow label="Skatteprocent" :value="samletSkatProcentVal" suffix="%" />
+        <ValueRow label="Kommuneskat" :value="r.kommuneskat" />
+        <ValueRow label="Bundskat" :value="r.bundskat" />
+        <ValueRow label="Topskat" :value="r.topskat" />
+        <ValueRow label="Arbejdsmarkedsbidrag" :value="r.amb" />
+        <ValueRow class="mt-3 underline" label="Samlet" :value="r.samletSkat" />
+        <ValueRow label="Skatteprocent" :value="r.skatteprocent" suffix="%" />
       </div>
-      <div class="card  basis-1/2">
+      <div class="card basis-1/2">
         <h2 class="text-xl mb-2">Fradrag</h2>
-        <ValueRow label="Skattefradrag" :value="fradrag / 12" />
-        <ValueRow label="Beskæftigelsesfradrag" :value="beskæftigelsesfradragVal / 12" />
-        <ValueRow label="Jobfradrag" :value="jobfradragVal / 12" />
-        <ValueRow class='mt-3 underline' label="Samlet" :value="(fradrag + beskæftigelsesfradragVal + jobfradragVal) / 12" />
+        <ValueRow label="Skattefradrag" :value="r.fradrag" />
+        <ValueRow label="Beskæftigelsesfradrag" :value="r.beskæftigelsesfradrag" />
+        <ValueRow label="Jobfradrag" :value="r.jobfradrag" />
+        <ValueRow class="mt-3 underline" label="Samlet" :value="r.samletFradrag" />
       </div>
     </div>
 
