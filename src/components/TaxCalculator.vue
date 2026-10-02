@@ -34,7 +34,7 @@ const r = computed(() => {
   const årsløn = lønMd.value * 12
   const amb = årsløn * satser.amb
   const lønMinusAmb = årsløn - amb
-  const fradrag = Math.min(satser.fradragMax, lønMd.value)
+  const fradrag = Math.min(satser.fradragMax, lønMinusAmb)
   const beskæftigelsesfradrag = Math.min(
     lønMinusAmb * satser.beskæftigelsesfradrag,
     satser.beskæftigelsesfradragMax
@@ -42,7 +42,7 @@ const r = computed(() => {
   const jobfradrag = Math.min(lønMinusAmb * satser.jobfradrag, satser.jobfradragMax)
 
   const kommuneskat =
-    (lønMinusAmb - beskæftigelsesfradrag - jobfradrag - fradrag) * satser.kommuneskat
+    Math.max(lønMinusAmb - beskæftigelsesfradrag - jobfradrag - fradrag, 0) * satser.kommuneskat
   const bundskat = (lønMinusAmb - fradrag) * satser.bundskat
   const topskat = Math.max(årsløn - satser.topskatSats, 0) * satser.topskat
   const samletSkat = kommuneskat + bundskat + topskat + amb
