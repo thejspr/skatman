@@ -1,6 +1,6 @@
 # skatman
 
-Danish take-home pay calculator. Vue 3 + Vite + Tailwind.
+Danish take-home pay calculator. Vue 3 + Vite.
 
 ```sh
 npm install

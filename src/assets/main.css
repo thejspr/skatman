@@ -1,5 +1,0 @@
-@import 'tailwindcss';
-
-.card {
-  @apply bg-white rounded-md shadow-2xl p-4;
-}
